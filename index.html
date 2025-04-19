@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>בינגו נתניהו: גרסת הספינים והשקרים</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Varela Round', sans-serif;
+      background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+      padding: 20px;
+      text-align: center;
+      color: #333;
+    }
+
+    h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+      color: #1a1a1a;
+    }
+
+    h3 {
+      font-weight: normal;
+      margin-top: 20px;
+      margin-bottom: 30px;
+      color: #444;
+      font-size: 1.1em;
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      margin: 10px 5px;
+      width: 100%;
+      max-width: 300px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .bingo-inputs {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 12px;
+      max-width: 400px;
+      margin: 0 auto 30px;
+    }
+
+    .bingo-inputs input {
+      width: 100%;
+    }
+
+    button {
+      background-color: #0077cc;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 24px;
+      font-size: 18px;
+      cursor: pointer;
+      margin-top: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #005fa3;
+    }
+
+    .bingo-board {
+      margin-top: 40px;
+      padding: 20px;
+      background-color: white;
+      max-width: 500px;
+      margin-inline: auto;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .bingo-board h2 {
+      margin-bottom: 20px;
+      font-size: 1.4em;
+      color: #222;
+    }
+
+    .bingo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .bingo-cell {
+      background-color: #f9f9f9;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 10px;
+      aspect-ratio: 1 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95em;
+      text-align: center;
+      transition: background-color 0.3s ease;
+    }
+
+    .bingo-cell:hover {
+      background-color: #e6f2ff;
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.5em;
+      }
+
+      h3 {
+        font-size: 1em;
+      }
+
+      button {
+        font-size: 16px;
+        padding: 10px 20px;
+      }
+
+      .bingo-cell {
+        font-size: 0.85em;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>בינגו נתניהו: גרסת הספינים והשקרים</h1>
+
+  <h3>הקלידו את התחזיות שלכם להצהרת ראש הממשלה – ותראו אם תקבלו בינגו בשידור חי</h3>
+
+  <input type="text" id="username" placeholder="הכניסו את שמכם כאן"><br>
+
+  <div class="bingo-inputs">
+    <input type="text" id="cell1">
+    <input type="text" id="cell2">
+    <input type="text" id="cell3">
+    <input type="text" id="cell4">
+    <input type="text" id="cell5">
+    <input type="text" id="cell6">
+    <input type="text" id="cell7">
+    <input type="text" id="cell8">
+    <input type="text" id="cell9">
+  </div>
+
+  <button onclick="generateBingo()">צור את לוח הבינגו</button>
+
+  <div class="bingo-board" id="bingoBoard"></div>
+
+  <script>
+    function generateBingo() {
+      const name = document.getElementById("username").value.trim() || "אנונימי";
+      const values = [];
+      for (let i = 1; i <= 9; i++) {
+        const val = document.getElementById("cell" + i).value.trim();
+        values.push(val || "-");
+      }
+
+      let boardHTML = `<h2>הבינגו של ${name} לקראת נאום נתניהו</h2><div class="bingo-grid">`;
+      for (let i = 0; i < 9; i++) {
+        boardHTML += `<div class="bingo-cell">${values[i]}</div>`;
+      }
+      boardHTML += "</div>";
+
+      document.getElementById("bingoBoard").innerHTML = boardHTML;
+    }
+  </script>
+
+</body>
+</html>
