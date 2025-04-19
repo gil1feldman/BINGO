@@ -5,6 +5,7 @@
   <title>בינגו נתניהו: גרסת הספינים והשקרים</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <style>
     * {
       box-sizing: border-box;
@@ -55,6 +56,10 @@
       width: 100%;
     }
 
+    .button-group {
+      margin-top: 10px;
+    }
+
     button {
       background-color: #0077cc;
       color: white;
@@ -63,7 +68,7 @@
       padding: 12px 24px;
       font-size: 18px;
       cursor: pointer;
-      margin-top: 10px;
+      margin: 10px 5px;
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
       transition: background-color 0.3s ease;
     }
@@ -152,7 +157,10 @@
     <input type="text" id="cell9">
   </div>
 
-  <button onclick="generateBingo()">צור את לוח הבינגו</button>
+  <div class="button-group">
+    <button onclick="generateBingo()">צור את לוח הבינגו</button>
+    <button id="saveBtn" style="display:none;" onclick="saveAsImage()">שמור כתמונה</button>
+  </div>
 
   <div class="bingo-board" id="bingoBoard"></div>
 
@@ -172,6 +180,17 @@
       boardHTML += "</div>";
 
       document.getElementById("bingoBoard").innerHTML = boardHTML;
+      document.getElementById("saveBtn").style.display = "inline-block";
+    }
+
+    function saveAsImage() {
+      const element = document.getElementById("bingoBoard");
+      html2canvas(element).then(canvas => {
+        const link = document.createElement("a");
+        link.download = "bingo_netanyahu.png";
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      });
     }
   </script>
 
