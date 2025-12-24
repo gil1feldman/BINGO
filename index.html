@@ -1,208 +1,201 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <title>בינגו נתניהו: גרסת הספינים והשקרים</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>צפייה בפרופילי טוויטר</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
 
-    body {
-      font-family: 'Varela Round', sans-serif;
-      background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
-      padding: 20px;
-      text-align: center;
-      color: #333;
-      margin: 0;
-    }
+        h1 {
+            color: #1d9bf0;
+        }
 
-    h1 {
-      font-size: 2em;
-      margin-bottom: 10px;
-      color: #1a1a1a;
-    }
+        /* Input Area Styling */
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: 0 auto 30px auto;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+        }
 
-    h3 {
-      font-weight: normal;
-      margin-top: 20px;
-      margin-bottom: 30px;
-      color: #444;
-      font-size: 1.1em;
-    }
+        input {
+            padding: 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            flex-grow: 1;
+        }
 
-    input[type="text"] {
-      padding: 10px;
-      margin: 10px 5px;
-      width: 100%;
-      max-width: 300px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 16px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
+        input:focus {
+            border-color: #1d9bf0;
+        }
 
-    .bingo-inputs {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-      gap: 12px;
-      max-width: 400px;
-      margin: 0 auto 30px;
-    }
+        button {
+            background-color: #000;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: opacity 0.2s;
+        }
 
-    .bingo-inputs input {
-      width: 100%;
-    }
+        button:hover {
+            opacity: 0.8;
+        }
 
-    .button-group {
-      margin-top: 10px;
-    }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
 
-    button {
-      background-color: #0077cc;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 12px 24px;
-      font-size: 18px;
-      cursor: pointer;
-      margin: 10px 5px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      transition: background-color 0.3s ease;
-    }
+        .counter {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #536471;
+        }
 
-    button:hover {
-      background-color: #005fa3;
-    }
+        /* Grid Layout for Profiles */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
 
-    .bingo-board {
-      margin-top: 40px;
-      padding: 20px;
-      background-color: white;
-      max-width: 500px;
-      margin-inline: auto;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      width: 100%;
-    }
+        .profile-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: relative;
+            height: 500px; /* Fixed height allowing scroll inside widget */
+        }
 
-    .bingo-board h2 {
-      margin-bottom: 20px;
-      font-size: 1.4em;
-      color: #222;
-    }
+        .remove-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px; /* RTL - left side */
+            background: rgba(255, 0, 0, 0.8);
+            color: white;
+            border: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 10;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-    .bingo-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      width: 100%;
-    }
-
-    .bingo-cell {
-      background-color: #f9f9f9;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      aspect-ratio: 1 / 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.95em;
-      text-align: center;
-      transition: background-color 0.3s ease;
-      word-wrap: break-word;
-      padding: 8px;
-    }
-
-    .bingo-cell:hover {
-      background-color: #e6f2ff;
-    }
-
-    @media (max-width: 480px) {
-      h1 {
-        font-size: 1.5em;
-      }
-
-      h3 {
-        font-size: 1em;
-      }
-
-      button {
-        font-size: 16px;
-        padding: 10px 20px;
-      }
-
-      .bingo-grid {
-        gap: 6px;
-      }
-
-      .bingo-cell {
-        font-size: 0.85em;
-        padding: 6px;
-      }
-    }
-  </style>
+        /* Loading Placeholder */
+        .loading {
+            padding: 20px;
+            color: #888;
+        }
+    </style>
 </head>
 <body>
 
-  <h1>בינגו נתניהו: גרסת הספינים והשקרים</h1>
+    <h1>מעקב פרופילי טוויטר (X)</h1>
 
-  <h3>תנו את התחזית שלכם לנאום הספינים והשקרים של נאשם מס' 1. בין הזוכים תוגרל ערכת "הניצחון המוחלט"</h3>
+    <div class="controls">
+        <input type="text" id="usernameInput" placeholder="הכנס שם משתמש (למשל: elonmusk)">
+        <button id="addBtn" onclick="addProfile()">הוסף פרופיל</button>
+    </div>
+    <div class="counter" id="counterText">0/10 פרופילים מוצגים</div>
 
-  <input type="text" id="username" placeholder="הכניסו את שמכם כאן"><br>
+    <div class="grid-container" id="gridContainer">
+        </div>
 
-  <div class="bingo-inputs">
-  <input type="text" id="cell1" placeholder="ספין/שקר מס' 1">
-  <input type="text" id="cell2" placeholder="ספין/שקר מס' 2">
-  <input type="text" id="cell3" placeholder="ספין/שקר מס' 3">
-  <input type="text" id="cell4" placeholder="ספין/שקר מס' 4">
-  <input type="text" id="cell5" placeholder="ספין/שקר מס' 5">
-  <input type="text" id="cell6" placeholder="ספין/שקר מס' 6">
-  <input type="text" id="cell7" placeholder="ספין/שקר מס' 7">
-  <input type="text" id="cell8" placeholder="ספין/שקר מס' 8">
-  <input type="text" id="cell9" placeholder="ספין/שקר מס' 9">
-</div>
+    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 
+    <script>
+        const grid = document.getElementById('gridContainer');
+        const input = document.getElementById('usernameInput');
+        const counterText = document.getElementById('counterText');
+        const addBtn = document.getElementById('addBtn');
+        const MAX_USERS = 10;
 
-  <div class="button-group">
-    <button onclick="generateBingo()">צור את לוח הבינגו</button>
-    <button id="saveBtn" style="display:none;" onclick="saveAsImage()">שמור כתמונה</button>
-  </div>
+        // Allow pressing Enter to add
+        input.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                addProfile();
+            }
+        });
 
-  <div class="bingo-board" id="bingoBoard"></div>
+        function updateCounter() {
+            const count = grid.children.length;
+            counterText.innerText = `${count}/${MAX_USERS} פרופילים מוצגים`;
+            addBtn.disabled = count >= MAX_USERS;
+        }
 
-  <script>
-    function generateBingo() {
-      const name = document.getElementById("username").value.trim() || "אנונימי";
-      const values = [];
-      for (let i = 1; i <= 9; i++) {
-        const val = document.getElementById("cell" + i).value.trim();
-        values.push(val || "-");
-      }
+        function addProfile() {
+            let username = input.value.trim();
+            
+            // Clean input (remove @ or url)
+            username = username.replace(/^@/, '').replace(/.*\//, '');
 
-      let boardHTML = `<h2>הבינגו של ${name} לקראת נאום נתניהו</h2><div class="bingo-grid">`;
-      for (let i = 0; i < 9; i++) {
-        boardHTML += `<div class="bingo-cell">${values[i]}</div>`;
-      }
-      boardHTML += "</div>";
+            if (!username) return alert("אנא הכנס שם משתמש");
+            
+            if (grid.children.length >= MAX_USERS) {
+                return alert("הגעת למגבלה של 10 משתמשים");
+            }
 
-      document.getElementById("bingoBoard").innerHTML = boardHTML;
-      document.getElementById("saveBtn").style.display = "inline-block";
-    }
+            // Create Card Container
+            const card = document.createElement('div');
+            card.className = 'profile-card';
 
-    function saveAsImage() {
-      const element = document.getElementById("bingoBoard");
-      html2canvas(element).then(canvas => {
-        const link = document.createElement("a");
-        link.download = "bingo_netanyahu.png";
-        link.href = canvas.toDataURL("image/png");
-        link.click();
-      });
-    }
-  </script>
+            // Delete Button
+            const delBtn = document.createElement('button');
+            delBtn.className = 'remove-btn';
+            delBtn.innerHTML = '&times;';
+            delBtn.onclick = () => {
+                card.remove();
+                updateCounter();
+            };
 
+            // Twitter Embed Anchor Tag
+            // We use 'data-height' to limit vertical size and 'data-chrome' to clean up UI if desired
+            const timelineLink = document.createElement('a');
+            timelineLink.className = 'twitter-timeline';
+            timelineLink.href = `https://twitter.com/${username}`;
+            timelineLink.setAttribute('data-height', '500'); 
+            timelineLink.setAttribute('data-lang', 'he');
+            timelineLink.innerText = `טוען פרופיל של @${username}...`;
+
+            card.appendChild(delBtn);
+            card.appendChild(timelineLink);
+            grid.appendChild(card);
+
+            // Clear Input
+            input.value = '';
+            updateCounter();
+
+            // Refresh Twitter Widgets to render the new link
+            if (window.twttr && window.twttr.widgets) {
+                window.twttr.widgets.load(card);
+            }
+        }
+    </script>
 </body>
 </html>
