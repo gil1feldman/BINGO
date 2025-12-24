@@ -3,149 +3,178 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>מערכת הצבעות - תצוגה מלאה</title>
+  <title>מליאה LIVE - לוח תוצאות</title>
+  
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
   <style>
-    /* איפוס ועיצוב גוף כדי למנוע גלילה ראשית */
-    body, html { height: 100%; margin: 0; padding: 0; overflow: hidden; background-color: #f1f5f9; font-family: system-ui, -apple-system, sans-serif; }
+    /* איפוס גלילה ראשית - האפליקציה תתפוס בדיוק 100% מהגובה */
+    body, html { height: 100%; margin: 0; padding: 0; overflow: hidden; background-color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
     
-    /* עיצוב פס גלילה דק ואלגנטי */
-    .custom-scroll::-webkit-scrollbar { width: 4px; }
+    /* עיצוב פס גלילה מודרני ודק */
+    .custom-scroll::-webkit-scrollbar { width: 5px; }
     .custom-scroll::-webkit-scrollbar-track { background: transparent; }
-    .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-    /* עיצוב הצ'יפ (כרטיס הח"כ הקטן) */
+    /* עיצוב הצ'יפ (שורת ח"כ) */
     .mk-chip {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
         background: white;
-        padding: 3px 6px;
+        padding: 4px 8px;
         border-radius: 6px;
         border: 1px solid #e2e8f0;
+        height: 42px; /* גובה קבוע לחישוב מדויק */
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         transition: transform 0.1s;
-        height: 36px; /* גובה קבוע וקטן */
     }
-    .mk-chip:hover { transform: scale(1.02); border-color: #94a3b8; z-index: 10; }
     
-    .mk-img-container {
-        width: 28px; height: 28px; min-width: 28px;
-        border-radius: 50%; overflow: hidden;
+    .mk-chip:hover { transform: translateY(-1px); border-color: #94a3b8; z-index: 10; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+    
+    .mk-img-wrapper {
+        width: 32px; height: 32px; min-width: 32px;
+        border-radius: 50%; 
         background-color: #e2e8f0;
         border: 1px solid #cbd5e1;
+        overflow: hidden;
+        position: relative;
     }
+    
     .mk-img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
     
-    .mk-name { font-size: 0.75rem; font-weight: 600; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .mk-party { font-size: 0.65rem; color: #64748b; line-height: 1; margin-top: 1px; }
+    .mk-info { overflow: hidden; display: flex; flex-direction: column; justify-content: center; line-height: 1.1; }
+    .mk-name { font-size: 0.8rem; font-weight: 700; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mk-party { font-size: 0.65rem; color: #64748b; margin-top: 1px; }
 
-    /* התאמה דינמית של הגריד */
+    /* גריד רספונסיבי צפוף */
     .mk-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); /* כרטיסים רחבים ונמוכים */
+        /* מתאים את מספר העמודות אוטומטית, מינימום 140px לכרטיס */
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
         gap: 6px;
         align-content: start;
+        padding-bottom: 20px; /* רווח בסוף הגלילה */
     }
   </style>
 </head>
-<body class="flex flex-col h-screen w-full">
+<body class="flex flex-col h-screen w-full text-slate-800">
   
-  <div class="bg-white shadow-sm border-b border-gray-200 p-2 z-10 shrink-0">
-    <div class="max-w-[1900px] mx-auto flex items-center justify-between gap-4">
+  <div class="bg-white border-b border-slate-200 px-4 py-2 z-20 shrink-0 shadow-sm flex items-center justify-between h-[60px]">
+    
+    <div class="flex items-center gap-4">
+        <h1 class="text-xl font-black text-slate-800 tracking-tight hidden md:block">מליאה<span class="text-blue-600">LIVE</span></h1>
         
-        <div class="flex items-center gap-3 flex-1">
-            <h1 class="text-lg font-bold text-slate-800 hidden md:block">מליאה LIVE</h1>
-            
-            <div class="flex bg-gray-100 rounded-md p-1 border border-gray-200">
-                <input type="number" id="direct-vote-id" class="bg-transparent border-none text-sm px-2 w-24 outline-none font-mono" placeholder="Vote ID">
-                <button onclick="loadSpecificVote()" class="bg-blue-600 text-white px-3 py-1 rounded text-xs font-bold hover:bg-blue-700 transition">הצג</button>
-            </div>
-            
-            <button onclick="loadRecentVote()" class="text-xs bg-gray-50 border border-gray-300 px-2 py-1.5 rounded hover:bg-gray-100 text-gray-600">הצבעה אחרונה</button>
+        <div class="flex items-center bg-slate-100 rounded-lg p-1 border border-slate-200 focus-within:ring-2 ring-blue-500/20 transition-all">
+            <input type="number" id="direct-vote-id" 
+                   class="bg-transparent border-none text-sm px-2 w-28 outline-none font-mono font-bold text-slate-700 placeholder-slate-400" 
+                   placeholder="מס' הצבעה">
+            <button onclick="loadSpecificVote()" 
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-md text-sm font-bold shadow-sm transition-colors">
+                הצג
+            </button>
         </div>
 
-        <div id="vote-info" class="text-center flex-1 hidden">
-            <h2 id="vh-title" class="text-sm font-bold text-gray-900 truncate max-w-lg mx-auto"></h2>
-            <div class="text-[10px] text-gray-500"><span id="vh-date"></span> | <span id="vh-id"></span></div>
-        </div>
+        <button onclick="loadRecentVote()" class="text-xs font-medium text-slate-500 hover:text-slate-800 underline decoration-slate-300 underline-offset-4">
+            טען אחרונה
+        </button>
+    </div>
 
-        <div class="flex-1 text-left hidden" id="save-btn-container">
-            <button onclick="downloadVisual()" class="text-xs bg-slate-800 text-white px-3 py-1.5 rounded hover:bg-slate-700 shadow-sm">📷 שמור תמונה</button>
+    <div id="vote-header" class="hidden flex-1 text-center px-4 overflow-hidden">
+        <div id="vh-title" class="text-sm font-bold text-slate-900 truncate" title=""></div>
+        <div class="text-[10px] font-mono text-slate-500 flex justify-center gap-2">
+            <span id="vh-date"></span> <span class="text-slate-300">|</span> <span id="vh-id"></span>
         </div>
+    </div>
+
+    <div class="w-[150px] flex justify-end">
+        <button id="btn-save" onclick="downloadVisual()" class="hidden flex items-center gap-1.5 bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded-md text-xs font-bold transition-all">
+            <span>📷</span> <span>שמור תמונה</span>
+        </button>
     </div>
   </div>
 
-  <div id="visual-container" class="flex-1 flex overflow-hidden p-2 gap-2 relative">
+  <div id="visual-container" class="flex-1 flex overflow-hidden p-2 gap-2 relative bg-slate-50">
       
-      <div id="status-overlay" class="absolute inset-0 flex items-center justify-center bg-slate-50/80 z-50 hidden">
-          <div class="text-center">
-              <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-              <span id="status-text" class="text-sm text-slate-600 font-medium">טוען...</span>
-          </div>
+      <div id="loader" class="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 hidden flex flex-col items-center justify-center">
+          <div class="animate-spin rounded-full h-10 w-10 border-4 border-slate-200 border-t-blue-600 mb-3"></div>
+          <div class="text-sm font-bold text-slate-600 animate-pulse">טוען נתונים מהכנסת...</div>
       </div>
 
-      <div id="col-for" class="flex-1 flex flex-col bg-green-50/40 rounded-lg border border-green-100 min-w-0 h-full">
-          <div class="p-2 bg-green-100/90 border-b border-green-200 flex justify-between items-center shrink-0">
-              <span class="font-bold text-green-900 text-sm">בעד</span>
-              <span id="count-for" class="bg-white text-green-700 px-2 rounded-md text-xs font-bold shadow-sm border border-green-100">0</span>
+      <div id="col-for" class="flex-1 flex flex-col bg-white rounded-xl border border-green-200 shadow-sm min-w-0 h-full overflow-hidden">
+          <div class="p-3 bg-green-50 border-b border-green-100 flex justify-between items-center shrink-0">
+              <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-green-500 shadow-sm"></span>
+                  <span class="font-bold text-green-900">בעד</span>
+              </div>
+              <span id="count-for" class="bg-white text-green-700 px-2.5 py-0.5 rounded text-sm font-black border border-green-200 shadow-sm">0</span>
           </div>
-          <div id="grid-for" class="mk-grid p-2 custom-scroll overflow-y-auto"></div>
+          <div id="grid-for" class="mk-grid p-2 custom-scroll overflow-y-auto flex-1"></div>
       </div>
 
-      <div id="col-against" class="flex-1 flex flex-col bg-red-50/40 rounded-lg border border-red-100 min-w-0 h-full">
-          <div class="p-2 bg-red-100/90 border-b border-red-200 flex justify-between items-center shrink-0">
-              <span class="font-bold text-red-900 text-sm">נגד</span>
-              <span id="count-against" class="bg-white text-red-700 px-2 rounded-md text-xs font-bold shadow-sm border border-red-100">0</span>
+      <div id="col-against" class="flex-1 flex flex-col bg-white rounded-xl border border-red-200 shadow-sm min-w-0 h-full overflow-hidden">
+          <div class="p-3 bg-red-50 border-b border-red-100 flex justify-between items-center shrink-0">
+              <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-red-500 shadow-sm"></span>
+                  <span class="font-bold text-red-900">נגד</span>
+              </div>
+              <span id="count-against" class="bg-white text-red-700 px-2.5 py-0.5 rounded text-sm font-black border border-red-200 shadow-sm">0</span>
           </div>
-          <div id="grid-against" class="mk-grid p-2 custom-scroll overflow-y-auto"></div>
+          <div id="grid-against" class="mk-grid p-2 custom-scroll overflow-y-auto flex-1"></div>
       </div>
 
-      <div id="col-abstain" class="flex-1 flex flex-col bg-yellow-50/40 rounded-lg border border-yellow-100 min-w-0 h-full hidden">
-          <div class="p-2 bg-yellow-100/90 border-b border-yellow-200 flex justify-between items-center shrink-0">
-              <span class="font-bold text-yellow-900 text-sm">נמנע</span>
-              <span id="count-abstain" class="bg-white text-yellow-700 px-2 rounded-md text-xs font-bold shadow-sm border border-yellow-100">0</span>
+      <div id="col-abstain" class="flex-1 flex flex-col bg-white rounded-xl border border-yellow-200 shadow-sm min-w-0 h-full overflow-hidden hidden">
+          <div class="p-3 bg-yellow-50 border-b border-yellow-100 flex justify-between items-center shrink-0">
+              <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-yellow-500 shadow-sm"></span>
+                  <span class="font-bold text-yellow-900">נמנע</span>
+              </div>
+              <span id="count-abstain" class="bg-white text-yellow-700 px-2.5 py-0.5 rounded text-sm font-black border border-yellow-200 shadow-sm">0</span>
           </div>
-          <div id="grid-abstain" class="mk-grid p-2 custom-scroll overflow-y-auto"></div>
+          <div id="grid-abstain" class="mk-grid p-2 custom-scroll overflow-y-auto flex-1"></div>
       </div>
 
-      <div id="col-novote" class="flex-1 flex flex-col bg-gray-50/40 rounded-lg border border-gray-200 min-w-0 h-full hidden">
-          <div class="p-2 bg-gray-200/90 border-b border-gray-300 flex justify-between items-center shrink-0">
-              <span class="font-bold text-gray-800 text-sm">לא הצביע</span>
-              <span id="count-novote" class="bg-white text-gray-600 px-2 rounded-md text-xs font-bold shadow-sm border border-gray-200">0</span>
+      <div id="col-novote" class="flex-1 flex flex-col bg-white rounded-xl border border-slate-200 shadow-sm min-w-0 h-full overflow-hidden hidden opacity-75">
+          <div class="p-3 bg-slate-100 border-b border-slate-200 flex justify-between items-center shrink-0">
+              <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-slate-400 shadow-sm"></span>
+                  <span class="font-bold text-slate-700">לא הצביע</span>
+              </div>
+              <span id="count-novote" class="bg-white text-slate-600 px-2.5 py-0.5 rounded text-sm font-black border border-slate-200 shadow-sm">0</span>
           </div>
-          <div id="grid-novote" class="mk-grid p-2 custom-scroll overflow-y-auto"></div>
+          <div id="grid-novote" class="mk-grid p-2 custom-scroll overflow-y-auto flex-1"></div>
       </div>
+
   </div>
 
   <script>
-    // --- לוגיקת תמונות מתקדמת ---
-    // שימוש במספר מקורות וטיפול ב-Referrer
-    const NO_IMG = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2cbdjhiIj48cGF0aCBkPSZNMTIgMTJjMi4yMSAwIDQtMS43OSA0LTRzLTEuNzktNC00LTQtNCAxLjc5LTQgNCAxLjc5IDQgNCA0em0wIDJjLTIuNjcgMC04IDEuMzQtOCA0djJoMTZ2LTJjMC0yLjY2LTUuMzMtNC04LTR6Ii8+PC9zdmc+';
+    // --- Image Handling Strategy: PROXY ---
+    // שימוש בשירות wsrv.nl כדי לעקוף חסימות CORS של הכנסת
+    const PROXY_BASE = 'https://wsrv.nl/?url=';
+    const KNESSET_IMG_BASE = 'https://fs.knesset.gov.il/Image/MK/';
+    const KNESSET_API_IMG = 'https://knesset.gov.il/WebSiteApi/knessetapi/MKs/GetMkImage?mkId=';
+    
+    // צללית ברירת מחדל (base64) לטעינה מהירה
+    const NO_IMG = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2NjYyI+PHBhdGggZD0iTTEyIDEyYzIuMjEgMCA0LTEuNzkgNC00czLTEuNzktNC00LTQtNCAxLjc5LTQgNCAxLjc5IDQgNCA0em0wIDJjLTIuNjcgMC04IDEuMzQtOCA0djJoMTZ2LTJjMC0yLjY2LTUuMzMtNC04LTR6Ii8+PC9zdmc+';
 
-    function getImgElement(mkId, mkName) {
-        // רשימת מקורות בסדר עדיפות
-        // 1. תמונה קטנה משרת ישן (לרוב עובד הכי מהר)
-        // 2. תמונה משרת קבצים חדש
-        // 3. API
-        const src1 = `https://knesset.gov.il/images/members/m${mkId}_s.jpg`;
-        const src2 = `https://fs.knesset.gov.il/Image/MK/${mkId}_240.jpg`;
-        
-        // הטריק כאן: ה-img מנסה את המקור הראשון, אם נכשל (onerror) מחליף לשני, אם נכשל מחליף לצללית
-        return `
-            <img src="${src1}" 
-                 class="mk-img" 
-                 alt="${mkName}" 
-                 loading="lazy"
-                 referrerpolicy="no-referrer"
-                 onerror="this.onerror=null; this.src='${src2}'; this.onerror=function(){this.src='${NO_IMG}'};"
-            >
-        `;
+    function getMkImage(mkId) {
+        // מנסה למשוך דרך הפרוקסי את התמונה הרשמית
+        // מוסיף פרמטרים ל-cache וכיווץ
+        return `${PROXY_BASE}${KNESSET_IMG_BASE}${mkId}_240.jpg&w=100&h=100&fit=cover&a=top`;
     }
 
-    // --- API ---
+    function handleImgError(img) {
+        // אם השרת הראשי נכשל, שם צללית
+        // אפשר להוסיף כאן לוגיקה לנסות מקור שלישי, אבל לרוב הפרוקסי פותר הכל
+        img.onerror = null; // מונע לולאה
+        img.src = NO_IMG;
+    }
+
+
+    // --- App Logic ---
+
     async function fetchJSON(url) {
         try {
             const res = await fetch(url);
@@ -154,36 +183,39 @@
         } catch (e) { return null; }
     }
 
-    // --- אפליקציה ---
-
-    function setLoading(state) {
-        const el = document.getElementById('status-overlay');
-        if(state) el.classList.remove('hidden');
+    function toggleLoader(show) {
+        const el = document.getElementById('loader');
+        if(show) el.classList.remove('hidden');
         else el.classList.add('hidden');
     }
 
     async function loadRecentVote() {
-        setLoading(true);
+        toggleLoader(true);
         const today = new Date();
-        const past = new Date(); past.setDate(today.getDate() - 3); // 3 ימים אחרונים
+        const past = new Date(); past.setDate(today.getDate() - 3);
         const fmt = d => d.toISOString().split('T')[0];
         
-        const url = `https://knesset.gov.il/WebSiteApi/knessetapi/Votes/GetVotesHeaders`;
         try {
+            const url = 'https://knesset.gov.il/WebSiteApi/knessetapi/Votes/GetVotesHeaders';
             const res = await fetch(url, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ FromDate: fmt(past), ToDate: fmt(today), SearchType: 1 })
             });
             const data = await res.json();
+            
             if(data?.Table?.length) {
-                document.getElementById('direct-vote-id').value = data.Table[0].VoteId;
-                loadVoteData(data.Table[0].VoteId);
+                const lastId = data.Table[0].VoteId;
+                document.getElementById('direct-vote-id').value = lastId;
+                loadVoteData(lastId);
             } else {
-                alert('לא נמצאו הצבעות לאחרונה');
-                setLoading(false);
+                alert('לא נמצאו הצבעות ב-3 הימים האחרונים');
+                toggleLoader(false);
             }
-        } catch(e) { setLoading(false); }
+        } catch(e) { 
+            console.error(e);
+            toggleLoader(false); 
+        }
     }
 
     async function loadSpecificVote() {
@@ -192,26 +224,32 @@
     }
 
     async function loadVoteData(voteId) {
-        setLoading(true);
+        toggleLoader(true);
+        
+        // 1. קבלת פרטי ההצבעה
         const url = `https://knesset.gov.il/WebSiteApi/knessetapi/Votes/GetVoteDetails/${voteId}`;
         const data = await fetchJSON(url);
         
-        setLoading(false);
-        if (!data || !data.VoteDetails) { alert('שגיאה בטעינת נתונים'); return; }
+        toggleLoader(false);
+        if (!data || !data.VoteDetails) { alert('לא נמצאו נתונים להצבעה זו'); return; }
 
-        // עדכון כותרת
+        // 2. עדכון כותרות
         const header = data.VoteHeader ? data.VoteHeader[0] : {};
         document.getElementById('vh-title').innerText = header.ItemTitle || 'ללא כותרת';
+        document.getElementById('vh-title').title = header.ItemTitle || '';
         document.getElementById('vh-date').innerText = header.VoteDateStr || '';
         document.getElementById('vh-id').innerText = voteId;
-        document.getElementById('vote-info').classList.remove('hidden');
-        document.getElementById('save-btn-container').classList.remove('hidden');
+        
+        document.getElementById('vote-header').classList.remove('hidden');
+        document.getElementById('btn-save').classList.remove('hidden');
+        document.getElementById('btn-save').classList.add('flex');
 
-        renderData(data.VoteDetails);
+        // 3. עיבוד נתונים
+        renderGrid(data.VoteDetails);
     }
 
-    function renderData(details) {
-        // ניקוי
+    function renderGrid(details) {
+        // איפוס
         ['for', 'against', 'abstain', 'novote'].forEach(k => document.getElementById(`grid-${k}`).innerHTML = '');
 
         const groups = { for: [], against: [], abstain: [], novote: [] };
@@ -225,41 +263,60 @@
         });
 
         // עדכון מונים
-        document.getElementById('count-for').innerText = groups.for.length;
-        document.getElementById('count-against').innerText = groups.against.length;
-        document.getElementById('count-abstain').innerText = groups.abstain.length;
-        document.getElementById('count-novote').innerText = groups.novote.length;
+        updateCount('for', groups.for.length);
+        updateCount('against', groups.against.length);
+        updateCount('abstain', groups.abstain.length);
+        updateCount('novote', groups.novote.length);
 
-        // הסתרת עמודות ריקות (דרישה 2)
-        toggleCol('abstain', groups.abstain.length > 0);
-        toggleCol('novote', false); // מסתיר תמיד את "לא הצביע" אלא אם תשנה את ה-false ל-true, כדי לחסוך מקום
+        // הסתרת עמודות ריקות בצורה חכמה
+        // תמיד מציגים בעד/נגד כדי לשמור על מבנה. נמנע/לא-הצביע מוסתרים אם ריקים.
+        toggleColumn('abstain', groups.abstain.length > 0);
+        toggleColumn('novote', false); // שנה ל-true אם אתה רוצה לראות את מי שלא הצביע
 
-        // מילוי גריד
-        fillCol('for', groups.for);
-        fillCol('against', groups.against);
-        fillCol('abstain', groups.abstain);
-        // fillCol('novote', groups.novote); // לא ממלא אם מוסתר
+        // רינדור
+        fillColumn('for', groups.for);
+        fillColumn('against', groups.against);
+        fillColumn('abstain', groups.abstain);
+        fillColumn('novote', groups.novote);
     }
 
-    function toggleCol(id, show) {
-        const el = document.getElementById(`col-${id}`);
-        if(show) { el.classList.remove('hidden'); el.classList.add('flex'); }
-        else { el.classList.add('hidden'); el.classList.remove('flex'); }
+    function updateCount(type, count) {
+        document.getElementById(`count-${type}`).innerText = count;
     }
 
-    function fillCol(type, list) {
+    function toggleColumn(type, show) {
+        const el = document.getElementById(`col-${type}`);
+        if(show) {
+            el.classList.remove('hidden');
+            el.classList.add('flex');
+        } else {
+            el.classList.add('hidden');
+            el.classList.remove('flex');
+        }
+    }
+
+    function fillColumn(type, list) {
         const container = document.getElementById(`grid-${type}`);
-        // מיון לפי מפלגה כדי שיהיה מסודר בעין
+        
+        // מיון לפי שם מפלגה
         list.sort((a,b) => (a.FactionName||'').localeCompare(b.FactionName||''));
 
         list.forEach(mk => {
             const div = document.createElement('div');
             div.className = 'mk-chip';
+            
+            const imgSrc = getMkImage(mk.MkId);
+            
             div.innerHTML = `
-                <div class="mk-img-container">
-                    ${getImgElement(mk.MkId, mk.MkName)}
+                <div class="mk-img-wrapper">
+                    <img src="${imgSrc}" 
+                         class="mk-img" 
+                         loading="lazy" 
+                         alt=""
+                         onerror="handleImgError(this)"
+                    >
                 </div>
-                <div style="overflow:hidden">
+                <div class="mk-info">
                     <div class="mk-name" title="${mk.MkName}">${mk.MkName}</div>
                     <div class="mk-party">${mk.FactionName || ''}</div>
                 </div>
@@ -268,30 +325,47 @@
         });
     }
 
-    // ייצוא
+    // ייצוא לתמונה
     async function downloadVisual() {
         const el = document.getElementById('visual-container');
-        // זמנית מסיר גלילה כדי לצלם הכל
-        const originalOverflows = [];
-        el.querySelectorAll('.custom-scroll').forEach(div => {
-            originalOverflows.push({el: div, val: div.style.overflow});
-            div.style.overflow = 'visible'; // חושף הכל לצילום
+        const btn = document.getElementById('btn-save');
+        const originalText = btn.innerHTML;
+        
+        btn.innerHTML = '⏳ מעבד...';
+        btn.disabled = true;
+
+        // זמנית מבטל גלילה פנימית כדי לצלם את כל התוכן
+        const scrolls = el.querySelectorAll('.custom-scroll');
+        const styles = [];
+        scrolls.forEach(s => {
+            styles.push({el: s, overflow: s.style.overflow, height: s.style.height});
+            s.style.overflow = 'visible';
+            s.style.height = 'auto'; // מותח את הדיב לגובה התוכן
         });
         
         try {
-            const canvas = await html2canvas(document.body, { 
-                scrollY: -window.scrollY,
-                useCORS: true,
-                backgroundColor: '#f1f5f9'
+            const canvas = await html2canvas(el, {
+                useCORS: true, // קריטי לתמונות מהפרוקסי
+                backgroundColor: '#f8fafc',
+                scale: 2 // איכות גבוהה
             });
+            
             const link = document.createElement('a');
-            link.download = `vote.png`;
+            link.download = `vote_${document.getElementById('direct-vote-id').value}.png`;
             link.href = canvas.toDataURL();
             link.click();
-        } catch(e) { console.error(e); }
-        
-        // החזרת מצב
-        originalOverflows.forEach(o => o.el.style.overflow = o.val);
+        } catch(e) {
+            console.error(e);
+            alert('שגיאה ביצירת התמונה');
+        } finally {
+            // שחזור מצב
+            scrolls.forEach((s, i) => {
+                s.style.overflow = styles[i].overflow;
+                s.style.height = styles[i].height;
+            });
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
     }
   </script>
 </body>
