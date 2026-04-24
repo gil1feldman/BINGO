@@ -1,256 +1,633 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>חידון: מי כתב את הפוסט?</title>
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
-        h1 { text-align: center; color: #2c3e50; }
-        .loading { text-align: center; font-size: 1.2em; color: #7f8c8d; padding: 20px; }
-        
-        /* תיבת שגיאה ברורה */
-        .error-msg { 
-            color: #721c24; 
-            background-color: #f8d7da; 
-            border: 1px solid #f5c6cb;
-            padding: 20px; 
-            border-radius: 5px; 
-            display: none; 
-            white-space: pre-wrap; 
-            direction: ltr; 
-            text-align: left;
-            font-family: monospace;
-            font-size: 14px;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>פולימרקט · ראש הממשלה הבא</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #161a22;
+    --surface2: #1e2430;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #e8eaf0;
+    --muted: #6b7080;
+    --muted2: #9aa0b0;
+    --accent: #4f8ef7;
+    --accent2: #7b6eff;
+    --green: #22d07a;
+    --red: #f7594f;
+    --yellow: #f5c842;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
 
-        .quiz-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: none; }
-        .question-card { border-bottom: 1px solid #eee; padding: 20px 0; position: relative; }
-        .post-content { font-size: 1.1em; line-height: 1.5; margin-bottom: 15px; padding: 15px; background-color: #eef2f5; border-radius: 5px; border-right: 4px solid #3498db; white-space: pre-wrap; }
-        a.revealed-link { text-decoration: none; color: #2c3e50; display: block; transition: background 0.3s; }
-        a.revealed-link:hover { background-color: #d6eaf8; cursor: pointer; }
-        a.revealed-link::after { content: " 🔗 (לחץ למעבר לפוסט)"; font-size: 0.8em; color: #3498db; font-weight: normal; }
-        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .option-btn { padding: 10px; border: 1px solid #ddd; background: white; cursor: pointer; border-radius: 4px; transition: all 0.2s; font-size: 1em; }
-        .option-btn:hover { background-color: #f0f0f0; }
-        .option-btn.selected { background-color: #3498db; color: white; border-color: #2980b9; }
-        .option-btn.correct { background-color: #2ecc71 !important; color: white; border-color: #27ae60; }
-        .option-btn.wrong { background-color: #e74c3c !important; color: white; border-color: #c0392b; opacity: 0.7; }
-        .feedback { margin-top: 10px; font-weight: bold; display: none; }
-        #submit-btn { display: block; width: 100%; padding: 15px; background-color: #2c3e50; color: white; border: none; border-radius: 5px; font-size: 1.2em; margin-top: 30px; cursor: pointer; display: none; }
-        #submit-btn:hover { background-color: #34495e; }
-        #score-display { text-align: center; font-size: 1.5em; margin-top: 20px; padding: 20px; background-color: #dff0d8; color: #3c763d; border-radius: 5px; display: none; }
-    </style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Heebo', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  /* ─── טופוגרפיה ─── */
+  h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+  h2 { font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 12px; }
+
+  /* ─── פריסה ─── */
+  .page { max-width: 960px; margin: 0 auto; padding: 32px 20px 60px; }
+
+  /* ─── כותרת ─── */
+  .top-bar {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    margin-bottom: 28px; gap: 16px; flex-wrap: wrap;
+  }
+  .top-bar-left h1 { color: var(--text); margin-bottom: 6px; }
+  .top-bar-left p { color: var(--muted2); font-size: 14px; }
+  .status-pill {
+    display: flex; align-items: center; gap: 7px;
+    background: var(--surface); border: 0.5px solid var(--border2);
+    border-radius: 999px; padding: 6px 14px;
+    font-size: 12px; color: var(--muted2); white-space: nowrap;
+  }
+  .pulse {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 0 0 rgba(34,208,122,0.4);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(34,208,122,0.4); }
+    70% { box-shadow: 0 0 0 7px rgba(34,208,122,0); }
+    100% { box-shadow: 0 0 0 0 rgba(34,208,122,0); }
+  }
+  .pulse.dead { background: var(--muted); box-shadow: none; animation: none; }
+  .pulse.error { background: var(--red); box-shadow: none; animation: none; }
+
+  /* ─── כרטיסי מדדים ─── */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px; margin-bottom: 28px;
+  }
+  .metric-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+  }
+  .metric-card .m-label {
+    font-size: 11px; font-weight: 500; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+  }
+  .metric-card .m-value {
+    font-size: 26px; font-weight: 700; color: var(--text); line-height: 1;
+  }
+  .metric-card .m-sub {
+    font-size: 12px; color: var(--muted); margin-top: 5px;
+  }
+
+  /* ─── גריד ראשי ─── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 680px) { .main-grid { grid-template-columns: 1fr; } }
+
+  /* ─── קלף ─── */
+  .card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+  .card-full { grid-column: 1 / -1; }
+
+  /* ─── בר הסתברויות ─── */
+  .candidate-row {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 13px;
+  }
+  .candidate-row:last-child { margin-bottom: 0; }
+  .cand-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; flex-shrink: 0;
+  }
+  .cand-info { flex: 1; min-width: 0; }
+  .cand-name { font-size: 14px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cand-bar-wrap {
+    height: 6px; background: rgba(255,255,255,0.07);
+    border-radius: 3px; margin-top: 5px; overflow: hidden;
+  }
+  .cand-bar { height: 100%; border-radius: 3px; transition: width 1s cubic-bezier(.4,0,.2,1); }
+  .cand-pct {
+    font-size: 16px; font-weight: 700; min-width: 46px;
+    text-align: left; flex-shrink: 0;
+  }
+  .cand-change {
+    font-size: 11px; min-width: 38px; text-align: left;
+    flex-shrink: 0;
+  }
+  .up { color: var(--green); }
+  .down { color: var(--red); }
+  .flat { color: var(--muted); }
+
+  /* ─── גרף מגמה ─── */
+  .chart-tabs {
+    display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap;
+  }
+  .chart-tab {
+    font-family: 'Heebo', sans-serif;
+    font-size: 12px; padding: 4px 12px;
+    border-radius: 999px;
+    border: 0.5px solid var(--border2);
+    background: transparent; color: var(--muted2);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .chart-tab:hover { background: var(--surface2); color: var(--text); }
+  .chart-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .chart-wrap { position: relative; height: 200px; }
+
+  /* ─── רשימת הימורים ─── */
+  .trade-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 0;
+    border-bottom: 0.5px solid var(--border);
+    font-size: 13px;
+  }
+  .trade-item:last-child { border-bottom: none; }
+  .trade-badge {
+    font-size: 10px; font-weight: 700; padding: 3px 8px;
+    border-radius: 4px; flex-shrink: 0; letter-spacing: 0.5px;
+  }
+  .badge-yes { background: rgba(34,208,122,0.15); color: var(--green); }
+  .badge-no { background: rgba(247,89,79,0.15); color: var(--red); }
+  .trade-cand { flex: 1; color: var(--text); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .trade-price { color: var(--text); font-weight: 700; min-width: 40px; text-align: right; }
+  .trade-size { color: var(--muted2); min-width: 52px; text-align: right; }
+  .trade-time { color: var(--muted); min-width: 46px; text-align: right; font-size: 12px; }
+
+  /* ─── שגיאה / loading ─── */
+  .placeholder {
+    color: var(--muted); font-size: 13px; text-align: center;
+    padding: 24px 0;
+  }
+  .error-note {
+    background: rgba(247,89,79,0.08);
+    border: 0.5px solid rgba(247,89,79,0.3);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-size: 13px; color: #f7a0a0;
+    margin-bottom: 16px; line-height: 1.6;
+  }
+
+  /* ─── כפתור רענון ─── */
+  .refresh-btn {
+    font-family: 'Heebo', sans-serif;
+    font-size: 13px; font-weight: 500;
+    background: transparent;
+    border: 0.5px solid var(--border2);
+    border-radius: var(--radius-sm);
+    color: var(--muted2); padding: 6px 14px;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .refresh-btn:hover { background: var(--surface2); color: var(--text); }
+  .refresh-btn:active { transform: scale(0.97); }
+
+  /* ─── divider ─── */
+  .divider { height: 0.5px; background: var(--border); margin: 4px 0 16px; }
+
+  /* ─── footer ─── */
+  .footer {
+    margin-top: 32px; font-size: 12px; color: var(--muted);
+    text-align: center; line-height: 1.6;
+  }
+  .footer a { color: var(--accent); text-decoration: none; }
+</style>
 </head>
 <body>
+<div class="page">
 
-    <h1>מי כתב את הפוסט?</h1>
-    
-    <div id="loading" class="loading">טוען נתונים...</div>
-    <div id="error-msg" class="error-msg"></div>
-    <div id="score-display"></div>
-    
-    <div class="quiz-container" id="quiz"></div>
-    <button id="submit-btn" onclick="checkAnswers()">בדוק תוצאות</button>
+  <!-- ─── כותרת ─── -->
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <h1>מי יהיה ראש הממשלה הבא?</h1>
+      <p id="eventDesc">טוען נתונים מ-Polymarket...</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <div class="status-pill">
+        <div class="pulse dead" id="pulseDot"></div>
+        <span id="statusText">טוען...</span>
+      </div>
+      <button class="refresh-btn" onclick="loadAll()">↻ רענן</button>
+    </div>
+  </div>
 
-    <script>
-        // כתובת הקובץ בגיטהב (גרסת RAW)
-        const DATA_URL = "https://raw.githubusercontent.com/gil1feldman/data_files/main/Data_from_Scooper_for_the_quiz";
+  <div id="errorBox" class="error-note" style="display:none"></div>
 
-        let activeQuestions = [];
-        let userAnswers = {};
-        
-        // מפענח CSV
-        function parseCSV(text) {
-            let arr = [];
-            let quote = false; 
-            let row = 0, col = 0;
-            let c = 0;
-            arr[row] = ['']; 
+  <!-- ─── מדדים ─── -->
+  <div class="metrics">
+    <div class="metric-card">
+      <div class="m-label">נפח מסחר כולל</div>
+      <div class="m-value" id="mVol">—</div>
+      <div class="m-sub" id="mVol24">—</div>
+    </div>
+    <div class="metric-card">
+      <div class="m-label">נזילות פעילה</div>
+      <div class="m-value" id="mLiq">—</div>
+    </div>
+    <div class="metric-card">
+      <div class="m-label">מספר מועמדים</div>
+      <div class="m-value" id="mCount">—</div>
+    </div>
+    <div class="metric-card">
+      <div class="m-label">עדכון אחרון</div>
+      <div class="m-value" id="mTime" style="font-size:18px">—</div>
+      <div class="m-sub" id="mDate">—</div>
+    </div>
+  </div>
 
-            for (; c < text.length; c++) {
-                let cc = text[c], nc = text[c+1];
-                arr[row] = arr[row] || [];
-                arr[row][col] = arr[row][col] || '';
+  <!-- ─── גריד ראשי ─── -->
+  <div class="main-grid">
 
-                if (cc == '"' && quote && nc == '"') { arr[row][col] += '"'; c++; continue; }
-                if (cc == '"') { quote = !quote; continue; }
-                if (cc == ',' && !quote) { col++; arr[row][col] = ''; continue; }
-                if (cc == '\r' && nc == '\n' && !quote) { row++; col = 0; c++; arr[row] = ['']; continue; }
-                if (cc == '\n' && !quote) { row++; col = 0; arr[row] = ['']; continue; }
-                if (cc == '\r' && !quote) { row++; col = 0; arr[row] = ['']; continue; }
+    <!-- הסתברויות -->
+    <div class="card">
+      <h2>הסתברויות נוכחיות</h2>
+      <div class="divider"></div>
+      <div id="barsContainer"><div class="placeholder">טוען...</div></div>
+    </div>
 
-                arr[row][col] += cc;
-            }
-            if (arr.length > 0 && arr[arr.length-1].length === 1 && arr[arr.length-1][0] === '') {
-                arr.pop();
-            }
-            return arr;
+    <!-- מגמה -->
+    <div class="card">
+      <h2>מגמה</h2>
+      <div class="divider"></div>
+      <div class="chart-tabs" id="chartTabs"></div>
+      <div class="chart-wrap">
+        <canvas id="trendChart" role="img" aria-label="גרף מגמת הסתברויות"></canvas>
+      </div>
+    </div>
+
+    <!-- הימורים אחרונים -->
+    <div class="card card-full">
+      <h2>הימורים אחרונים</h2>
+      <div class="divider"></div>
+      <div id="tradesContainer"><div class="placeholder">טוען...</div></div>
+    </div>
+
+  </div><!-- /main-grid -->
+
+  <div class="footer">
+    נתונים בזמן אמת מ-<a href="https://polymarket.com/event/who-will-be-the-next-prime-minister-of-israel-after-the-next-election" target="_blank">Polymarket</a> ·
+    מחירים = הסתברויות מרומזות · לא ייעוץ השקעות
+  </div>
+</div><!-- /page -->
+
+<script>
+/* ═══════════════════════════════════════════════════
+   קבועים
+══════════════════════════════════════════════════ */
+const EVENT_SLUG = 'who-will-be-the-next-prime-minister-of-israel-after-the-next-election';
+const GAMMA      = 'https://gamma-api.polymarket.com';
+const CLOB       = 'https://clob.polymarket.com';
+
+// צבעים לפי מועמד (אינדקס)
+const PALETTE = [
+  '#4f8ef7', // כחול
+  '#22d07a', // ירוק
+  '#f7c342', // צהוב
+  '#f7594f', // אדום
+  '#b06ef7', // סגול
+  '#4fd8f7', // טורקיז
+  '#f77d4f', // כתום
+  '#a0b4c8', // אפור-כחול
+];
+
+/* ═══════════════════════════════════════════════════
+   מצב גלובלי
+══════════════════════════════════════════════════ */
+let markets      = [];   // רשימת שווקים מהאירוע
+let prevPrices   = {};   // מחירים קודמים לחישוב שינוי
+let trendChart   = null;
+let activeTokens = [];   // token IDs של המועמד הפעיל בגרף
+
+/* ═══════════════════════════════════════════════════
+   פורמוט
+══════════════════════════════════════════════════ */
+function fmtUSD(n) {
+  if (n == null) return '—';
+  if (n >= 1e6)  return '$' + (n / 1e6).toFixed(1) + 'M';
+  if (n >= 1e3)  return '$' + (n / 1e3).toFixed(0) + 'K';
+  return '$' + Math.round(n);
+}
+function fmtPct(p) { return Math.round(p * 100) + '%'; }
+
+function timeAgo(ts) {
+  const sec = Math.floor((Date.now() / 1000) - ts);
+  if (sec < 60)   return sec + 'ש׳';
+  if (sec < 3600) return Math.floor(sec / 60) + 'ד׳';
+  if (sec < 86400)return Math.floor(sec / 3600) + 'ש"ש';
+  return Math.floor(sec / 86400) + 'י׳';
+}
+
+/* ═══════════════════════════════════════════════════
+   שלב 1 — אירוע + שווקים מ-Gamma
+══════════════════════════════════════════════════ */
+async function fetchEvent() {
+  const r = await fetch(`${GAMMA}/events?slug=${EVENT_SLUG}`);
+  if (!r.ok) throw new Error(`Gamma ${r.status}`);
+  const arr = await r.json();
+  return Array.isArray(arr) ? arr[0] : arr;
+}
+
+/* ═══════════════════════════════════════════════════
+   שלב 2 — טריידים אחרונים מ-CLOB
+══════════════════════════════════════════════════ */
+async function fetchTrades(tokenId, limit = 20) {
+  const r = await fetch(`${CLOB}/trades?token_id=${tokenId}&limit=${limit}`);
+  if (!r.ok) throw new Error(`Trades ${r.status}`);
+  return r.json(); // { data: [...] }
+}
+
+/* ═══════════════════════════════════════════════════
+   שלב 3 — היסטוריה מ-CLOB
+══════════════════════════════════════════════════ */
+async function fetchHistory(tokenId, interval = '1d', fidelity = 60) {
+  const r = await fetch(`${CLOB}/prices-history?market=${tokenId}&interval=${interval}&fidelity=${fidelity}`);
+  if (!r.ok) throw new Error(`History ${r.status}`);
+  return r.json(); // { history: [{t, p}] }
+}
+
+/* ═══════════════════════════════════════════════════
+   עיבוד שווקים
+══════════════════════════════════════════════════ */
+function parseMarkets(eventObj) {
+  const raw = eventObj.markets || [];
+  return raw
+    .map(m => {
+      const prices      = JSON.parse(m.outcomePrices  || '["0","0"]');
+      const tokenIds    = JSON.parse(m.clobTokenIds   || '[]');
+      const yesPrice    = parseFloat(prices[0]) || 0;
+      return {
+        id:       m.id,
+        question: m.question || '',
+        name:     m.groupItemTitle || extractName(m.question),
+        yesPrice,
+        noPrice:  parseFloat(prices[1]) || 0,
+        tokenYes: tokenIds[0] || null,
+        tokenNo:  tokenIds[1] || null,
+        volume:   m.volume || 0,
+        liquidity:m.liquidityNum || 0,
+      };
+    })
+    .sort((a, b) => b.yesPrice - a.yesPrice);
+}
+
+function extractName(q = '') {
+  // "Will X be the next..." → "X"
+  const m = q.match(/^Will (.+?) be/i) || q.match(/^(.+?)(?:\?|$)/);
+  return m ? m[1].trim() : q;
+}
+
+/* ═══════════════════════════════════════════════════
+   רינדור — ברים
+══════════════════════════════════════════════════ */
+function renderBars() {
+  const el = document.getElementById('barsContainer');
+  if (!markets.length) { el.innerHTML = '<div class="placeholder">אין נתונים</div>'; return; }
+
+  el.innerHTML = markets.map((m, i) => {
+    const pct   = Math.round(m.yesPrice * 100);
+    const color = PALETTE[i % PALETTE.length];
+    const prev  = prevPrices[m.tokenYes];
+    const delta = prev != null ? Math.round((m.yesPrice - prev) * 100) : null;
+    const changeHtml = delta == null ? '' :
+      delta > 0 ? `<span class="cand-change up">▲${delta}%</span>` :
+      delta < 0 ? `<span class="cand-change down">▼${Math.abs(delta)}%</span>` :
+                  `<span class="cand-change flat">–</span>`;
+
+    const initials = m.name.split(' ').map(w => w[0]).join('').slice(0, 2);
+
+    return `
+    <div class="candidate-row">
+      <div class="cand-avatar" style="background:${color}22;color:${color}">${initials}</div>
+      <div class="cand-info">
+        <div class="cand-name">${m.name}</div>
+        <div class="cand-bar-wrap">
+          <div class="cand-bar" style="width:${pct}%;background:${color}"></div>
+        </div>
+      </div>
+      <div class="cand-pct" style="color:${color}">${pct}%</div>
+      ${changeHtml}
+    </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════
+   רינדור — tabs + גרף מגמה
+══════════════════════════════════════════════════ */
+function renderTabs() {
+  const el = document.getElementById('chartTabs');
+  // הצג עד 5 מועמדים מובילים
+  const top = markets.slice(0, 5);
+  el.innerHTML = top.map((m, i) =>
+    `<button class="chart-tab${i === 0 ? ' active' : ''}"
+       onclick="switchTab(this, ${markets.indexOf(m)})">${m.name.split(' ')[0]}</button>`
+  ).join('');
+}
+
+async function switchTab(btn, idx) {
+  document.querySelectorAll('.chart-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  await loadTrend(idx);
+}
+
+async function loadTrend(idx) {
+  const m = markets[idx];
+  if (!m || !m.tokenYes) return;
+
+  const color = PALETTE[idx % PALETTE.length];
+
+  try {
+    const res  = await fetchHistory(m.tokenYes, '1d', 60);
+    const hist = (res.history || []).slice(-7); // 7 ימים אחרונים
+    const labels = hist.map(p => {
+      const d = new Date(p.t * 1000);
+      return d.toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' });
+    });
+    const values = hist.map(p => Math.round(p.p * 100));
+
+    if (trendChart) { trendChart.destroy(); trendChart = null; }
+
+    trendChart = new Chart(document.getElementById('trendChart'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: m.name,
+          data: values,
+          borderColor: color,
+          backgroundColor: color + '18',
+          fill: true,
+          tension: 0.4,
+          pointRadius: 4,
+          pointBackgroundColor: color,
+          pointBorderColor: '#0d0f14',
+          pointBorderWidth: 2,
+          pointHoverRadius: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1e2430',
+            borderColor: 'rgba(255,255,255,0.1)',
+            borderWidth: 1,
+            titleColor: '#9aa0b0',
+            bodyColor: '#e8eaf0',
+            padding: 10,
+            callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y + '%' }
+          }
+        },
+        scales: {
+          y: {
+            min: 0, max: 100,
+            ticks: { callback: v => v + '%', color: '#6b7080', font: { size: 11 } },
+            grid: { color: 'rgba(255,255,255,0.05)' },
+          },
+          x: {
+            ticks: { color: '#6b7080', font: { size: 11 }, autoSkip: true, maxTicksLimit: 7 },
+            grid: { display: false }
+          }
         }
+      }
+    });
+  } catch(e) {
+    console.warn('trend error', e);
+  }
+}
 
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
+/* ═══════════════════════════════════════════════════
+   רינדור — הימורים אחרונים
+══════════════════════════════════════════════════ */
+async function renderTrades() {
+  const el = document.getElementById('tradesContainer');
+  // טען טריידים מהמועמד המוביל
+  const top5 = markets.slice(0, 5).filter(m => m.tokenYes);
+  if (!top5.length) { el.innerHTML = '<div class="placeholder">אין נתונים</div>'; return; }
 
-        async function initQuiz() {
-            const loadingEl = document.getElementById('loading');
-            const errorEl = document.getElementById('error-msg');
-            const quizContainer = document.getElementById('quiz');
-            const submitBtn = document.getElementById('submit-btn');
+  try {
+    // קח טריידים מכל המועמדים המובילים ואחד אותם
+    const allTrades = [];
+    await Promise.all(top5.map(async (m, i) => {
+      try {
+        const res = await fetchTrades(m.tokenYes, 12);
+        const trades = res.data || res || [];
+        trades.forEach(t => allTrades.push({ ...t, _market: m, _color: PALETTE[i % PALETTE.length] }));
+      } catch {}
+    }));
 
-            try {
-                const response = await fetch(DATA_URL);
-                if (!response.ok) throw new Error(`שגיאת רשת: ${response.status}`);
-                
-                const csvText = await response.text();
+    // מיין לפי זמן
+    allTrades.sort((a, b) => b.matchTime - a.matchTime);
+    const recent = allTrades.slice(0, 20);
 
-                // --- בדיקות אבחון ---
-                
-                // 1. בדיקה אם זה קובץ HTML (שגיאה בקישור)
-                if (csvText.trim().toLowerCase().startsWith("<!doctype html") || csvText.trim().toLowerCase().startsWith("<html")) {
-                    throw new Error("הקובץ שנטען הוא דף HTML ולא נתונים.\nנראה שהקישור מפנה לדף התצוגה של גיטהב ולא לקובץ הגולמי (Raw).");
-                }
+    if (!recent.length) { el.innerHTML = '<div class="placeholder">אין הימורים אחרונים</div>'; return; }
 
-                // 2. בדיקה אם זה קובץ אקסל (XLSX)
-                if (csvText.startsWith("PK")) {
-                    throw new Error("הקובץ שנטען הוא קובץ Excel (.xlsx) בינארי.\nהדפדפן לא יכול לקרוא אקסל ישירות.\n\nפתרון: פתח את הקובץ באקסל, שמור אותו כ-CSV (UTF-8), והעלה מחדש ל-GitHub.");
-                }
+    el.innerHTML = `
+    <div style="display:grid;grid-template-columns:auto 1fr auto auto auto;gap:0;font-size:12px;color:var(--muted);padding:0 0 6px;border-bottom:0.5px solid var(--border);margin-bottom:4px;">
+      <span>צד</span><span style="padding-right:10px">מועמד</span>
+      <span style="text-align:right;padding-left:8px">מחיר</span>
+      <span style="text-align:right;padding-left:8px">גודל ($)</span>
+      <span style="text-align:right;padding-right:0">לפני</span>
+    </div>
+    ${recent.map(t => {
+      const isBuy = (t.side || '').toLowerCase() === 'buy';
+      const price = t.price ? Math.round(t.price * 100) + '%' : '—';
+      const size  = t.size  ? fmtUSD(parseFloat(t.size)) : '—';
+      const ago   = t.matchTime ? timeAgo(t.matchTime) : '—';
+      return `
+      <div class="trade-item">
+        <span class="trade-badge ${isBuy ? 'badge-yes' : 'badge-no'}">${isBuy ? 'YES' : 'NO'}</span>
+        <span class="trade-cand" style="color:${t._color}">${t._market.name}</span>
+        <span class="trade-price">${price}</span>
+        <span class="trade-size">${size}</span>
+        <span class="trade-time">${ago}</span>
+      </div>`;
+    }).join('')}`;
+  } catch(e) {
+    el.innerHTML = `<div class="placeholder">שגיאה בטעינת הימורים: ${e.message}</div>`;
+  }
+}
 
-                const data = parseCSV(csvText);
-                
-                if (data.length < 2) {
-                    throw new Error("הקובץ ריק או מכיל רק כותרת.");
-                }
+/* ═══════════════════════════════════════════════════
+   טעינה ראשית
+══════════════════════════════════════════════════ */
+async function loadAll() {
+  const dot = document.getElementById('pulseDot');
+  const statusText = document.getElementById('statusText');
+  const errorBox = document.getElementById('errorBox');
 
-                // ניקוי כותרות
-                const headers = data[0].map(h => h.trim().replace(/^\uFEFF/, ''));
-                
-                // מיפוי עמודות (רגישות לאותיות קטנות/גדולות בוטלה)
-                // אנו מחפשים את האינדקס של העמודה המתאימה
-                const findCol = (name) => headers.findIndex(h => h.toLowerCase() === name.toLowerCase());
+  dot.className = 'pulse dead';
+  statusText.textContent = 'טוען...';
+  errorBox.style.display = 'none';
 
-                const colIndices = {
-                    content: findCol('content'),
-                    post_type: findCol('post_type'),
-                    url: findCol('url'),
-                    name: findCol('extra_source_attributes.name')
-                };
+  try {
+    const event = await fetchEvent();
+    if (!event) throw new Error('האירוע לא נמצא ב-Polymarket');
 
-                // בדיקת עמודות חסרות
-                const missingCols = Object.keys(colIndices).filter(k => colIndices[k] === -1);
-                
-                if (missingCols.length > 0) {
-                    const foundHeadersStr = headers.join(', ');
-                    throw new Error(
-                        `המערכת לא מצאה את העמודות הבאות: ${missingCols.join(', ')}\n\n` +
-                        `הכותרות שנמצאו בקובץ בפועל הן:\n[${foundHeadersStr}]\n\n` +
-                        `אם זה נראה כמו ג'יבריש, כנראה שהקובץ הוא אקסל ולא CSV.`
-                    );
-                }
+    // שמור מחירים קודמים לחישוב שינוי
+    if (markets.length) {
+      markets.forEach(m => { prevPrices[m.tokenYes] = m.yesPrice; });
+    }
 
-                const parsedPosts = data.slice(1).map(row => {
-                    if (row.length < headers.length) return null;
-                    return {
-                        content: row[colIndices.content],
-                        post_type: row[colIndices.post_type],
-                        url: row[colIndices.url],
-                        extra_source_attributes: { name: row[colIndices.name] }
-                    };
-                }).filter(p => p !== null);
+    markets = parseMarkets(event);
 
-                const textPosts = parsedPosts.filter(post => post.post_type === "TEXT");
-                
-                if (textPosts.length === 0) throw new Error("לא נמצאו פוסטים מסוג TEXT.");
+    // כרטיסי מדדים
+    document.getElementById('mVol').textContent    = fmtUSD(event.volume);
+    document.getElementById('mVol24').textContent  = event.volume24hr ? 'אתמול: ' + fmtUSD(event.volume24hr) : '';
+    document.getElementById('mLiq').textContent    = fmtUSD(event.liquidity);
+    document.getElementById('mCount').textContent  = markets.length;
+    const now = new Date();
+    document.getElementById('mTime').textContent   = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+    document.getElementById('mDate').textContent   = now.toLocaleDateString('he-IL', { day: 'numeric', month: 'long' });
 
-                const allAuthors = [...new Set(textPosts.map(p => p.extra_source_attributes.name).filter(n => n && n.trim() !== ''))];
+    document.getElementById('eventDesc').textContent = 'נסגר: ' + (event.endDate ? new Date(event.endDate).toLocaleDateString('he-IL') : '—') + ' · נפח 30 יום: ' + fmtUSD(event.volume1mo);
 
-                if (textPosts.length < 4 || allAuthors.length < 4) {
-                    throw new Error(`אין מספיק נתונים. נמצאו ${textPosts.length} פוסטים ו-${allAuthors.length} מחברים.`);
-                }
+    // רינדור
+    renderBars();
+    renderTabs();
+    await loadTrend(0);
+    await renderTrades();
 
-                const selectedPosts = shuffleArray([...textPosts]).slice(0, 10);
-                
-                activeQuestions = selectedPosts.map((post, index) => {
-                    const correctAuthor = post.extra_source_attributes.name;
-                    const distractors = shuffleArray(allAuthors.filter(name => name !== correctAuthor)).slice(0, 3);
-                    const options = shuffleArray([correctAuthor, ...distractors]);
+    dot.className = 'pulse';
+    statusText.textContent = 'עודכן בהצלחה';
 
-                    return {
-                        id: index,
-                        content: post.content,
-                        url: post.url,
-                        correct: correctAuthor,
-                        options: options
-                    };
-                });
+  } catch(e) {
+    dot.className = 'pulse error';
+    statusText.textContent = 'שגיאה';
+    errorBox.style.display = 'block';
+    errorBox.innerHTML = `
+      <strong>לא ניתן לטעון נתונים מ-Polymarket</strong><br>
+      ${e.message}<br>
+      <small>ייתכן שמגבלת CORS או חסימה גאוגרפית מונעת גישה. נסה ב-VPN או מדפדפן אחר.</small>`;
+    console.error(e);
+  }
+}
 
-                loadingEl.style.display = 'none';
-                quizContainer.style.display = 'block';
-                submitBtn.style.display = 'block';
-                renderQuiz();
-
-            } catch (error) {
-                console.error(error);
-                loadingEl.style.display = 'none';
-                errorEl.innerText = error.message;
-                errorEl.style.display = 'block';
-            }
-        }
-
-        function renderQuiz() {
-            const container = document.getElementById('quiz');
-            container.innerHTML = '';
-            activeQuestions.forEach((q) => {
-                const card = document.createElement('div');
-                card.className = 'question-card';
-                let optionsHtml = '';
-                q.options.forEach(opt => optionsHtml += `<button class="option-btn" onclick="selectOption(${q.id}, '${opt}', this)">${opt}</button>`);
-                card.innerHTML = `<div class="post-content" id="content-${q.id}">${q.content}</div><div>מי כתב את זה?</div><div class="options-grid" id="options-${q.id}">${optionsHtml}</div><div class="feedback" id="feedback-${q.id}"></div>`;
-                container.appendChild(card);
-            });
-        }
-
-        function selectOption(questionId, selectedName, btnElement) {
-            userAnswers[questionId] = selectedName;
-            const parent = document.getElementById(`options-${questionId}`);
-            const buttons = parent.getElementsByClassName('option-btn');
-            for (let btn of buttons) btn.classList.remove('selected');
-            btnElement.classList.add('selected');
-        }
-
-        function checkAnswers() {
-            let score = 0;
-            const total = activeQuestions.length;
-            activeQuestions.forEach(q => {
-                const feedbackEl = document.getElementById(`feedback-${q.id}`);
-                const optionsDiv = document.getElementById(`options-${q.id}`);
-                const contentDiv = document.getElementById(`content-${q.id}`);
-                const buttons = optionsDiv.getElementsByClassName('option-btn');
-                const userAnswer = userAnswers[q.id];
-                const isCorrect = userAnswer === q.correct;
-                contentDiv.innerHTML = `<a href="${q.url}" target="_blank" class="revealed-link">${q.content}</a>`;
-                for (let btn of buttons) {
-                    btn.disabled = true;
-                    if (btn.innerText === q.correct) btn.classList.add('correct');
-                    if (btn.innerText === userAnswer && !isCorrect) btn.classList.add('wrong');
-                }
-                if (isCorrect) { score++; feedbackEl.style.color = 'green'; feedbackEl.innerText = '✓ תשובה נכונה!'; } 
-                else { feedbackEl.style.color = 'red'; feedbackEl.innerText = `✗ טעות. הכותב הוא: ${q.correct}`; }
-                feedbackEl.style.display = 'block';
-            });
-            const scoreDisplay = document.getElementById('score-display');
-            scoreDisplay.innerText = `הציון שלך: ${score} מתוך ${total}`;
-            scoreDisplay.style.display = 'block';
-            document.getElementById('submit-btn').style.display = 'none';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        initQuiz();
-
-    </script>
+// טעינה ראשונית + רענון אוטומטי כל 60 שניות
+loadAll();
+setInterval(loadAll, 60_000);
+</script>
 </body>
 </html>
